@@ -1,14 +1,25 @@
 import Link from 'next/link';
-import { getPosts } from '../utils/mdx-utils';
+import { getPosts } from '../../utils/mdx-utils';
 
-import Footer from '../components/Footer';
-import Header from '../components/Header';
-import Layout, { GradientBackground } from '../components/Layout';
-import ArrowIcon from '../components/ArrowIcon';
-import { getGlobalData } from '../utils/global-data';
-import SEO from '../components/SEO';
+import Footer from '../../components/Footer';
+import Header from '../../components/Header';
+import Layout, { GradientBackground } from '../../components/Layout';
+import ArrowIcon from '../../components/ArrowIcon';
+import { getGlobalData } from '../../utils/global-data';
+import SEO from '../../components/SEO';
 
 export default function Index({ posts, globalData }) {
+  // Adicionar verificação de dados
+  if (!posts) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center h-screen">
+          <p>Carregando...</p>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <SEO title={globalData.name} description={globalData.blogTitle} />
@@ -28,7 +39,7 @@ export default function Index({ posts, globalData }) {
                 href={`/posts/${post.id}`}
               >
                 <a className="py-6 lg:py-10 px-6 lg:px-16 block focus:outline-none focus:ring-4">
-                  {post.created_ate && (
+                  {post.created_at && (
                     <p className="uppercase mb-3 font-bold opacity-60">
                       {post.created_at}
                     </p>
@@ -60,9 +71,25 @@ export default function Index({ posts, globalData }) {
 }
 
 export async function getServerSideProps() {
-  const posts = await getPosts();
-  const globalData = getGlobalData()
+  try {
+    const posts = await getPosts();
+    const globalData = getGlobalData();
 
-
-  return { props: { posts, globalData } };
+    console.log('Posts na página:', posts); // debug
+    
+    return { 
+      props: { 
+        posts: posts || [], 
+        globalData 
+      } 
+    };
+  } catch (error) {
+    console.error('Erro ao carregar posts:', error);
+    return { 
+      props: { 
+        posts: [], 
+        globalData: getGlobalData() 
+      } 
+    };
+  }
 }
